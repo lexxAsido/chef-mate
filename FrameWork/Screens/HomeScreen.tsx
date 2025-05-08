@@ -46,31 +46,37 @@ const Home: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     const q = firestoreQuery(collection(db, 'recipes'), orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const userRecipes: Recipe[] = snapshot.docs.map((doc) => {
-        const data = doc.data() as DocumentData;
-        return {
-          id: doc.id,
-          title: data.title,
-          image: data.imageUrl,
-          instructions: data.instructions,
-          ingredients: data.ingredients,
-          summary:data.summary,
-          createdBy: data.createdBy,
-          source: 'user',
-          readyInMinutes: data.readyInMinutes || 30,
-        };
-      });
-
-      setFirebaseRecipes(userRecipes);
-    }, (error) => {
-      console.error(error);
-      setError('Unable to load recipes from Firebase.');
-    });
-
-    return () => unsubscribe(); // Cleanup
+  
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const userRecipes: Recipe[] = snapshot.docs.map((doc) => {
+          const data = doc.data() as DocumentData;
+  
+          return {
+            id: doc.id, 
+            title: data.title,
+            image: data.imageUrl,
+            instructions: data.instructions,
+            ingredients: data.ingredients,
+            summary: data.summary,
+            createdBy: data.createdBy,
+            source: 'user',
+            readyInMinutes: data.readyInMinutes || 30,
+          };
+        });
+  
+        setFirebaseRecipes(userRecipes);
+      },
+      (error) => {
+        console.error(error);
+        setError('Unable to load recipes from Firebase.');
+      }
+    );
+  
+    return () => unsubscribe();
   }, []);
+  
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -92,33 +98,32 @@ const Home: React.FC<HomeScreenProps> = ({ navigation }) => {
     const shortSummary = plainSummary.length > 100 ? plainSummary.slice(0, 100) + '...' : plainSummary;
 
     return (
-      // onPress={() => navigation.navigate('RecipeDetailScreen', { id: item.id })}
       <TouchableOpacity
-    onPress={() => {
-    const recipeDetails: Recipe = {
-      id: item.id,
-      title: item.title,
-      image: item.image,
-      readyInMinutes: item.readyInMinutes,
-      summary: item.summary || 'No summary available',
-      ingredients: item.ingredients || [],
-      source: item.source || 'api',
-    };
+        onPress={() => {
+        const recipeDetails: Recipe = {
+          id: item.id,
+          title: item.title,
+          image: item.image,
+          readyInMinutes: item.readyInMinutes,
+          summary: item.summary || 'No summary available',
+          ingredients: item.ingredients || [],
+          source: item.source || 'api',
+        };
+        navigation.navigate('RecipeDetailScreen', { recipe: recipeDetails });
+      }}
 
-    navigation.navigate('RecipeDetailScreen', { recipe: recipeDetails });
-  }}
-  style={{
-    marginBottom: 16,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: theme === 'dark' ? '#343434' : '#f8f8f8',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 10,
-  }}
->
+      style={{
+        marginBottom: 16,
+        padding: 12,
+        borderRadius: 10,
+        backgroundColor: theme === 'dark' ? '#343434' : '#f8f8f8',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 10,
+      }}
+    >
   <Image
     source={{ uri: item.image }}
     style={{ width: '100%', height: 160, borderRadius: 8 }}
@@ -197,7 +202,7 @@ const Home: React.FC<HomeScreenProps> = ({ navigation }) => {
 
       <FlatList
         data={searchResults.length > 0 ? searchResults : firebaseRecipes}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()} 
         renderItem={renderRecipeCard}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
@@ -234,7 +239,7 @@ export function HomeScreen() {
     >
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Favorite" component={Favorite} options={{ title: 'Favorites' }} />
-      <Tab.Screen name="CreateRecipe" component={CreateRecipe} options={{ title: 'Add Recipe' }} />
+      <Tab.Screen name="CreateRecipe" component={CreateRecipe} options={{ title: 'My Recipes' }} />
       <Tab.Screen name="Profile" component={Profile} options={{ title: 'Account' }} />
     </Tab.Navigator>
   );

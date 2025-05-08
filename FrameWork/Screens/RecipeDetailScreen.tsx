@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { getRecipeDetails, getRecipeInformation, RecipeDetails } from '../Services/Spoonacular';
+import { getRecipeInformation, RecipeDetails } from '../Services/Spoonacular';
 import { readOutLoud, stopSpeaking } from '../Utils/speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
@@ -24,50 +24,66 @@ const db = getFirestore();
 type RecipeDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'RecipeDetailScreen'>;
 
 const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigation }) => {
-  
   const { recipe: passedRecipe } = route.params;
-
-
 
   const [loading, setLoading] = useState(passedRecipe?.source === 'firebase' ? false : true);
   const [error, setError] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const { theme } = useContext(ThemeContext);
-  
-  const isValidRecipe = (obj: any): obj is RecipeDetails => {
-    return obj && typeof obj.id !== 'undefined' && Array.isArray(obj.ingredients);
-  };
-  
-  const [recipe, setRecipe] = useState<RecipeDetails | null>(
-    passedRecipe?.source === 'firebase' && isValidRecipe(passedRecipe) ? passedRecipe : null
-  );
-  
+
+  const normalizeFirebaseRecipe = (recipe: any): RecipeDetails => ({
+    ...recipe,
+    extendedIngredients: Array.isArray(recipe.ingredients)
+  ? recipe.ingredients.map((ing: string | object) => ({
+      original: typeof ing === 'string' ? ing : JSON.stringify(ing),
+    }))
+  : [],
+
+    instructions: recipe.instructions || '',
+    summary: recipe.summary || '',
+  });
+
+  const [recipe, setRecipe] = useState<RecipeDetails | null>(() => {
+    if (passedRecipe?.source === 'firebase') {
+      return normalizeFirebaseRecipe(passedRecipe);
+    }
+    return null;
+  });
 
   useEffect(() => {
-    if (!passedRecipe || passedRecipe.source !== 'firebase') {
+    if (!passedRecipe) return;
+  
+    const source = passedRecipe?.source?.toLowerCase?.();
+  
+    
+    if (source !== 'firebase' && passedRecipe?.id) {
       fetchRecipe();
     }
+  
     checkIfFavorite();
     return () => stopSpeaking();
   }, []);
+  
+  
 
   const fetchRecipe = async () => {
     setLoading(true);
     try {
       let recipeId = passedRecipe?.id;
   
-      // Convert to number if it's a string
-      if (typeof recipeId === 'string') {
+     
+      if (typeof recipeId === 'string' && /^\d+$/.test(recipeId)) {
         recipeId = parseInt(recipeId, 10);
+      }
+  
+      // Spoonacular only accepts numeric IDs
+      if (typeof recipeId !== 'number' || isNaN(recipeId)) {
+        throw new Error('Invalid recipe ID');
       }
   
       console.log("recipeId:", recipeId);
   
-      if (!recipeId || isNaN(recipeId)) {
-        throw new Error('Invalid recipe ID');
-      }
-  
-      const data = await getRecipeInformation(recipeId); // now it's guaranteed to be a number
+      const data = await getRecipeInformation(recipeId);
   
       const recipeWithIngredients: RecipeDetails = {
         ...data,
@@ -82,11 +98,6 @@ const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigati
       setLoading(false);
     }
   };
-  
-  
-  
-  
-  
 
   const stripHtml = (html: string) => html.replace(/<\/?[^>]+(>|$)/g, '');
 
@@ -103,12 +114,11 @@ const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigati
     try {
       const storedFavorites = await AsyncStorage.getItem('favorites');
       const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
-      
-      // Ensure recipe?.id is a number
-      const recipeId = typeof recipe?.id === 'string' ? parseInt(recipe?.id, 10) : recipe?.id;
-  
+
+      const recipeId = recipe?.id;
+
       const existing = favorites.find((fav: any) => fav.id === recipeId);
-  
+
       const newFavorite = {
         id: recipeId,
         title: recipe?.title,
@@ -116,7 +126,7 @@ const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigati
         summary: recipe?.summary,
         source: passedRecipe?.source || 'api',
       };
-  
+
       if (existing) {
         const updatedFavorites = favorites.filter((fav: any) => fav.id !== recipeId);
         await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
@@ -133,7 +143,6 @@ const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigati
       console.error('Error managing favorites', error);
     }
   };
-  
 
   const saveFavoriteToFirestore = async (favorite: any) => {
     try {
@@ -146,7 +155,7 @@ const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigati
     }
   };
 
-  const removeFavoriteFromFirestore = async (recipeId: number | undefined) => {
+  const removeFavoriteFromFirestore = async (recipeId: number | string | undefined) => {
     try {
       const user = getAuth().currentUser;
       if (!user || !recipeId) return;
@@ -161,16 +170,15 @@ const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigati
     try {
       const storedFavorites = await AsyncStorage.getItem('favorites');
       const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
-  
+
       const recipeId = recipe?.id || passedRecipe?.id;
       const exists = favorites.find((fav: any) => fav.id === recipeId);
-  
+
       setIsFavorite(!!exists);
     } catch (error) {
       console.error('Error checking favorites', error);
     }
   };
-  
 
   return (
     <ScrollView

@@ -8,7 +8,7 @@ import { showPreloader, hidePreloader } from '../Redux/preloaderSlice';
 import { db } from '../Services/Firebase.client';
 import { getAuth } from 'firebase/auth';
 import { ThemeContext } from '../Context/ThemeContext';
-// import { ThemeContext } from '../Context/ThemeContext';
+
 
 
 interface Recipe {
@@ -16,6 +16,9 @@ interface Recipe {
   title: string;
   image: string;
   readyInMinutes: number;
+  summary?: string;
+  ingredients?:string;
+  source?: string
 }
 
 const Favorite = () => {
@@ -85,7 +88,21 @@ const Favorite = () => {
           shadowOpacity: 0.4,
           shadowRadius: 7,
           elevation: 5,}}
-        onPress={() => navigation.navigate('RecipeDetailScreen', { id: item.id })}
+        onPress={() => {
+           const recipeDetails: Recipe = {
+             id: item.id,
+             title: item.title,
+             image: item.image,
+             readyInMinutes: item.readyInMinutes,
+             summary: item.summary || 'No summary available',
+             ingredients: Array.isArray(item.ingredients)
+             ? item.ingredients.join(', ')
+             : item.ingredients || 'No ingredients listed',
+             source: item.source || 'api',
+           };
+       
+           navigation.navigate('RecipeDetailScreen', { recipe: recipeDetails });
+         }}
       >
         <Image
           source={{ uri: item.image }}

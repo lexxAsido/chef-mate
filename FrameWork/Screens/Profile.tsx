@@ -138,7 +138,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
           <TextInput
             value={user?.fullname ?? ''}
             editable={false}
-            className='border border-gray-300 font-sora text-sm pl-4 py-1 mb-3'
+            className='border border-gray-300 font-sora text-sm pl-4 py-1 mb-3 rounded-lg'
             style={{ color: theme === 'dark' ? '#fff' : '#000' }}
             
           />
@@ -147,7 +147,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
           <TextInput
             value={user?.email ?? ''}
             editable={false}
-            className='border border-gray-300 font-sora text-sm pl-4 py-1 mb-3'
+            className='border border-gray-300 font-sora text-sm pl-4 py-1 mb-3 rounded-lg'
             style={{ color: theme === 'dark' ? '#fff' : '#000' }}
             
           />
@@ -233,8 +233,8 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
                                 marginTop: 20, margin: 15,
                             }}>
 
-                                <TouchableOpacity onPress={() => { closeModal(); logout() }} style={{ borderColor: "red", backgroundColor: theme === 'dark' ? '#fff' : '#000', borderWidth: 1 }} >
-                                  <Text className='text-center font-soraBold py-2' style={{color:theme === 'dark' ? '#000' : 'red'}}>Yes, Sign Out</Text>
+                                <TouchableOpacity onPress={() => { closeModal(); logout() }} style={{  backgroundColor: theme === 'dark' ? '#fff' : '#000', borderWidth: 1 }} >
+                                  <Text className='text-center font-soraBold py-2' style={{color:theme === 'dark' ? 'red' : 'red'}}>Yes, Sign Out</Text>
                                 </TouchableOpacity>
                             </View>
 
