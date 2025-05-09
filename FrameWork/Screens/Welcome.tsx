@@ -35,7 +35,7 @@ const Welcome: React.FC<WelcomeProps> = ({ navigation }) => {
        </TouchableOpacity>
 
     </View>
-        <Text className='mb-5 font-soraBold text-center text-sm ' style={{color:theme === 'dark' ? '#fff' : '#000'}}>By Continuing, you agreee to ChefMate Terms of Use and Privacy Policy</Text>
+        <Text className='mb-5 font-soraBold text-center text-sm ' style={{color:theme === 'dark' ? '#E94E1B' : '#000'}}>By Continuing, you agreee to ChefMate Terms of Use and Privacy Policy</Text>
     </View>
   )
 }

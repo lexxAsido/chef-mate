@@ -273,10 +273,10 @@ const CreateRecipe = () => {
           recipes.length === 0 ? (
             <View style={{}} className='flex-1 justify-center '>
               <Text style={{
-                color: theme === 'dark' ? '#000' : '#fff',
+                color: theme === 'dark' ? '#E94E1B' : '#fff',
                 textAlign: 'center',
                 paddingHorizontal: 20
-              }} className='font-soraBold'>
+              }} className='font-soraBold' >
                 You have no personal recipes yet. Please Create Your Recipe .
               </Text>
             </View>
